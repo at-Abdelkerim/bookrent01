@@ -1,5 +1,3 @@
-import { Gift, Heart, Menu, Search, ShoppingCart, User } from "lucide-react";
-import Link from "next/link";
 import React from "react";
 import NavBar from "../components/navbar";
 
