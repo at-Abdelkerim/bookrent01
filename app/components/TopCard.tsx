@@ -5,25 +5,27 @@ import Link from "next/link";
 import LikeButton from "./LikeButton";
 import { MoveRight, Star } from "lucide-react";
 
+type TopCardProps = {
+  id: string;
+  img: string[];
+  title: string;
+  price: number;
+  owner: { name: string; rate: number };
+};
+
 export default async function TopCard({
   id,
   img,
   title,
   price,
   owner: { name, rate },
-}: {
-  id: string;
-  img: string;
-  title: string;
-  price: number;
-  owner: { name: string; rate: number };
-}) {
+}: TopCardProps) {
   return (
     <div className="overflow-hidden grid grid-cols-[auto_1fr] gap-x-2 p-2 lg:p-5">
       <div className="relative rounded-md overflow-hidden">
         <Link href={"/" + id}>
           <Image
-            src={await import(`@/public/image/${img}`)}
+            src={await import(`@/public/image/${img[0]}`)}
             alt=""
             className="rounded-md overflow-hidden w-40 h-40  lg:w-[600px]  lg:h-80 object-cover object-center"
           />

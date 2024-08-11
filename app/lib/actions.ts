@@ -50,6 +50,66 @@ export async function register(
   redirect("/");
 }
 
+export async function getBook(id?: string) {
+  if (id) {
+    return [
+      {
+        id: id,
+        img: ["book01.png", "book02.jpeg"],
+        title: "Deep Work",
+        price: 72.5,
+        owner: { name: "abdelkerim", rate: 45 },
+      },
+    ];
+    redirect("/");
+  } else {
+    return [
+      {
+        id: "test01",
+        img: ["book01.png"],
+        title: "Deep Work",
+        price: 72.5,
+        owner: { name: "abdelkerim", rate: 45 },
+      },
+      {
+        id: "test02",
+        img: ["book01.png"],
+        title: "Deep Work",
+        price: 72.5,
+        owner: { name: "abdelkerim", rate: 45 },
+      },
+      {
+        id: "test03",
+        img: ["book01.png"],
+        title: "Deep Work",
+        price: 72.5,
+        owner: { name: "abdelkerim", rate: 45 },
+      },
+      {
+        id: "test04",
+        img: ["book01.png"],
+        title: "Deep Work",
+        price: 72.5,
+        owner: { name: "abdelkerim", rate: 45 },
+      },
+      {
+        id: "test05",
+        img: ["book01.png"],
+        title: "Deep Work",
+        price: 72.5,
+        owner: { name: "abdelkerim", rate: 45 },
+      },
+      {
+        id: "test06",
+        img: ["book01.png"],
+        title: "Deep Work",
+        price: 72.5,
+        owner: { name: "abdelkerim", rate: 45 },
+      },
+    ];
+  }
+}
+
 export async function giveLike(
   prevState: boolean | undefined,
   formData: FormData
@@ -65,51 +125,4 @@ export async function giveLike(
     else cookieStore.set(id, "like", { secure: true });
     return !isLike;
   }
-}
-
-export async function getBooks() {
-  return [
-    {
-      id: "test01",
-      img: "book01.png",
-      title: "Deep Work",
-      price: 72.5,
-      owner: { name: "abdelkerim", rate: 45 },
-    },
-    {
-      id: "test02",
-      img: "book01.png",
-      title: "Deep Work",
-      price: 72.5,
-      owner: { name: "abdelkerim", rate: 45 },
-    },
-    {
-      id: "test03",
-      img: "book01.png",
-      title: "Deep Work",
-      price: 72.5,
-      owner: { name: "abdelkerim", rate: 45 },
-    },
-    {
-      id: "test04",
-      img: "book01.png",
-      title: "Deep Work",
-      price: 72.5,
-      owner: { name: "abdelkerim", rate: 45 },
-    },
-    {
-      id: "test05",
-      img: "book01.png",
-      title: "Deep Work",
-      price: 72.5,
-      owner: { name: "abdelkerim", rate: 45 },
-    },
-    {
-      id: "test06",
-      img: "book01.png",
-      title: "Deep Work",
-      price: 72.5,
-      owner: { name: "abdelkerim", rate: 45 },
-    },
-  ];
 }

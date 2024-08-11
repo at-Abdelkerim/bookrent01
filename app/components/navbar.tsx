@@ -4,7 +4,7 @@ import { Gift, Heart, Menu, Search, ShoppingCart, User, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-export default function NavBar() {
+export default function NavBar({ cart }: { cart: number }) {
   const [isMenu, setIsMenu] = useState(false);
   return (
     <div className="relative shadow">
@@ -49,17 +49,22 @@ export default function NavBar() {
           <button className="hover:bg-orange-200 p-2 rounded-full">
             <Gift className="size-4 lg:size-8" />
           </button>
-          <button className="hover:bg-orange-200 p-2 rounded-full">
+          <button className="relative hover:bg-orange-200 p-2 rounded-full">
             <ShoppingCart className="size-4 lg:size-8" />
+            {cart > 0 && (
+              <span className="absolute top-0 right-0 bg-red-200 font-extrabold text-red-700 px-1 rounded-full text-sm">
+                {cart}
+              </span>
+            )}
           </button>
         </div>
       </div>
       <div
-        className={`max-lg:absolute z-10 left-2 top-12 right-16 flex max-lg:flex-col lg:justify-center lg:items-center gap-y-2 lg:gap-x-10 max-lg:bg-gray-200 shadow-xl /50 rounded-xl backdrop-blur-xl p-2 ${
+        className={`max-lg:fixed z-10 inset-x-0 b bottom-0 h- top-12 flex max-lg:flex-col lg:justify-center lg:items-center gap-y-2 lg:gap-x-10 max-lg:bg-gray-200/50 backdrop-blur-xl p-2 ${
           isMenu ? "" : "max-lg:hidden"
         }`}
       >
-        <p className="text-center">Browse Category</p>
+        <p className="lg:hidden text-xl">Browse Category</p>
         <button className="flex items-center gap-2 hover:bg-orange-200 px-4 py-2 rounded-full">
           <Gift />
           Gift Mode

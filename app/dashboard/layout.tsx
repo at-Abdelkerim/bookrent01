@@ -11,5 +11,6 @@ export default async function Layout({
   owner: React.ReactNode;
 }) {
   const session = await auth();
+  console.log("SESSION:", session);
   return session?.user?.role === "admin" ? admin : owner;
 }

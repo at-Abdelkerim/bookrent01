@@ -33,6 +33,7 @@ const authConfig = {
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
+      console.log("USER:", auth?.user?.role);
       const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
       if (!!auth?.user)
         if (auth?.user.role === "customer")

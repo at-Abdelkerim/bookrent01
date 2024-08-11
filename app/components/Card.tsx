@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import LikeButton from "./LikeButton";
-import { Star } from "lucide-react";
+import { Maximize, Star } from "lucide-react";
 
 export default async function Card({
   id,
@@ -11,7 +11,7 @@ export default async function Card({
   owner: { name, rate },
 }: {
   id: string;
-  img: string;
+  img: string[];
   title: string;
   price: number;
   owner: { name: string; rate: number };
@@ -21,25 +21,36 @@ export default async function Card({
       <div className="relative grid place-content-center">
         <Link href={"/" + id}>
           <Image
-            src={await import(`@/public/image/${img}`)}
+            src={await import(`@/public/image/${img[0]}`)}
             alt=""
-            className="rounded-lg size-[400px]"
+            className="rounded lg:rounded-md size-[150px] lg:size-[400px]"
           />
         </Link>
         <LikeButton id={id} hide />
       </div>
-      <Link href={"/" + id} className="text-xl">
-        <p className="">{title}</p>
-        <div className="flex gap-x-2">
-          <Star fill="black" strokeWidth={0} className="" />
-          <Star fill="black" strokeWidth={0} className="" />
-          <Star fill="black" strokeWidth={0} className="" />
-          <Star fill="black" strokeWidth={0} className="" />
-          <Star fill="black" strokeWidth={0} className="" />
+      <Link href={"/" + id} className="lg:text-xl">
+        <p className="max-lg:w-32 w-80 line-clamp-1">
+          {title}
+          {title}
+          {title}
+          {title}
+          {title}
+          {title}
+        </p>
+        <div className="flex gap-x-2 items-center">
+          <Star fill="black" strokeWidth={0} className="size-3 lg:size-5" />
+          <Star fill="black" strokeWidth={0} className="size-3 lg:size-5" />
+          <Star fill="black" strokeWidth={0} className="size-3 lg:size-5" />
+          <Star fill="black" strokeWidth={0} className="size-3 lg:size-5" />
+          <Star fill="black" strokeWidth={0} className="size-3 lg:size-5" />
           <span className="">{rate}</span>
         </div>
-        <p className="text-2xl font-bold">USD {price}</p>
-        <p className="">{name}</p>
+        <p className="lg:text-2xl font-bold">USD {price}</p>
+        <p className="capitalize">{name}</p>
+        <button className="hover:bg-gray-200 rounded-full py-1 px-2 lg:hidden flex items-center gap-x-2 my-4">
+          <Maximize />
+          <span className="font-semibold">quick view</span>
+        </button>
       </Link>
     </div>
   );

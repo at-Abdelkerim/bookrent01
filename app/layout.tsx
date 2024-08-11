@@ -4,6 +4,7 @@ import "./globals.css";
 import React from "react";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "./lib/auth";
+import { CookiesProvider } from "next-client-cookies/server";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +22,9 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={` ${inter.className}`}>
-        <SessionProvider session={session}>{children}</SessionProvider>
+        <SessionProvider session={session}>
+          <CookiesProvider>{children}</CookiesProvider>
+        </SessionProvider>
       </body>
     </html>
   );
