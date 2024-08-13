@@ -126,3 +126,36 @@ export async function giveLike(
     return !isLike;
   }
 }
+
+export async function getOwnerDashboardData() {
+  return {
+    pieChart: [
+      { name: "A1", value: 100 },
+      { name: "A2", value: 300 },
+      { name: "B1", value: 100 },
+      { name: "B2", value: 80 },
+      { name: "B3", value: 40 },
+    ],
+    table: [
+      { no: 1, bookNo: 1223, name: "DertoGada", status: true, price: 40 },
+      { no: 2, bookNo: 1221, name: "Ramatohara", status: false, price: 50 },
+      { no: 3, bookNo: 1224, name: "Ramatohara", status: false, price: 50 },
+      { no: 4, bookNo: 4554, name: "Ramatohara", status: false, price: 50 },
+      { no: 5, bookNo: 4556, name: "Ramatohara", status: false, price: 50 },
+    ],
+    areaChart: [
+      { month: "Jan", thisYear: 5, lastYear: 30 },
+      { month: "Feb", thisYear: 20, lastYear: 3 },
+      { month: "Mar", thisYear: 10, lastYear: 20 },
+      { month: "Apr", thisYear: 20, lastYear: 26 },
+      { month: "May", thisYear: 5, lastYear: 5 },
+      { month: "Jun", thisYear: 20, lastYear: 20 },
+      { month: "Jul", thisYear: 0, lastYear: 30 },
+      { month: "Sep", thisYear: 0, lastYear: 3 },
+      { month: "Sep", thisYear: 0, lastYear: 20 },
+      { month: "Oct", thisYear: 0, lastYear: 26 },
+      { month: "Nov", thisYear: 0, lastYear: 5 },
+      { month: "Dec", thisYear: 0, lastYear: 20 },
+    ],
+  };
+}

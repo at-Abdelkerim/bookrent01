@@ -22,7 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       />
       <div className="gap-y-5 grid grid-rows-[auto_1fr] overflow-hidden">
         <Header />
-        <div className="bg-gray-50 rounded-2xl overflow-y-auto">{children}</div>
+        <div className="grid overflow-y-auto">{children}</div>
       </div>
     </div>
   );
