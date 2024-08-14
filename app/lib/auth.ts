@@ -11,12 +11,14 @@ import prisma from "./db";
 
 declare module "next-auth" {
   interface User {
+    id?: string;
     role?: string;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
+    id?: string;
     role?: string;
   }
 }
@@ -44,10 +46,14 @@ const authConfig = {
       else return true;
     },
     async jwt({ token, user }) {
-      if (user) token.role = user.role;
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
       return token;
     },
     async session({ session, token }) {
+      if (token.id) session.user.id = token.id;
       session.user.role = token.role;
       return session;
     },

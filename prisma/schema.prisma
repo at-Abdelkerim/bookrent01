@@ -21,6 +21,19 @@ model user {
   password    String
   name        String
   location    String
+  book        book[]
+}
+
+model book {
+  id       String @id @default(uuid())
+  name     String
+  author   String
+  category String
+  img      String
+  price    Int
+  quantity Int
+  owner    user   @relation(fields: [ownerId], references: [id])
+  ownerId  String
 }
 
 enum role {
