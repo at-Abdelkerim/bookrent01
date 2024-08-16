@@ -5,15 +5,21 @@ import LikeButton from "./LikeButton";
 import { Fragment, useState } from "react";
 import Image from "next/image";
 
-export default function ImagesList({ img }: { img: string[] }) {
+export default function ImagesList({
+  img,
+  ownerId,
+}: {
+  img: string[];
+  ownerId: string;
+}) {
   const [selected, setSelected] = useState(0);
   return (
     <div className="lg:[grid-are:img] aspect-[1] lg:aspect-[2] grid lg:gap-x-4 lg:grid-cols-[auto_1fr]  ">
-      <div className=" max-lg:py-2 grid max-lg:grid-flow-col gap-2 justify-center auto-rows-min max-lg:order-2 ">
-        {img.map((img, index) => (
+      <div className="border border-gray-400 rounded-md w-[104px] max-lg:py-2 grid max-lg:grid-flow-col gap-2 justify-center auto-rows-min max-lg:order-2 ">
+        {img.map((value, index) => (
           <Fragment key={index.toString()}>
             <Image
-              src={"/image/" + img}
+              src={`/image/book/${ownerId}/${value}`}
               alt=""
               width={100}
               height={100}
@@ -33,7 +39,7 @@ export default function ImagesList({ img }: { img: string[] }) {
       </div>
       <div className="relative lg:overflow-hidden max-lg:order-1">
         <Image
-          src={"/image/" + img[selected]}
+          src={`/image/book/${ownerId}/${img[selected]}`}
           alt=""
           width={100}
           height={100}

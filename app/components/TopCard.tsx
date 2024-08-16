@@ -4,40 +4,31 @@ import Image from "next/image";
 import Link from "next/link";
 import LikeButton from "./LikeButton";
 import { MoveRight, Star } from "lucide-react";
+import { TBook } from "../lib/definitions";
 
-type TopCardProps = {
-  id: string;
-  img: string[];
-  title: string;
-  price: number;
-  owner: { name: string; rate: number };
-};
-
-export default async function TopCard({
-  id,
-  img,
-  title,
-  price,
-  owner: { name, rate },
-}: TopCardProps) {
+export default async function TopCard({ id, img, name, price, owner }: TBook) {
   return (
     <div className="overflow-hidden grid grid-cols-[auto_1fr] gap-x-2 p-2 lg:p-5">
       <div className="relative rounded-md overflow-hidden">
         <Link href={"/" + id}>
           <Image
-            src={await import(`@/public/image/${img[0]}`)}
+            src={
+              img?.[0]
+                ? await import(`@/public/image/book/${owner?.id}/${img?.[0]}`)
+                : ""
+            }
             alt=""
             className="rounded-md overflow-hidden w-40 h-40  lg:w-[600px]  lg:h-80 object-cover object-center"
           />
         </Link>
-        <LikeButton id={id} />
+        <LikeButton id={id!} />
       </div>
       <div className="lg:px-10 grid grid-rows-[1fr_auto] ">
         <div className=" ">
           <div className="flex flex-col-reverse  ">
             <div className="lg:flex lg:gap-x-5   ">
               <Link href={""} className=" underline">
-                {name}
+                {owner?.name}
               </Link>
               <div className="flex lg:gap-x-2 items-center">
                 <Star
@@ -65,16 +56,16 @@ export default async function TopCard({
                   strokeWidth={0}
                   className="size-3 lg:size-5"
                 />
-                <span className="max-lg:text-sm">{rate}</span>
+                <span className="max-lg:text-sm">{owner?.rate}</span>
               </div>
             </div>
             <Link href={"/" + id}>
               <button className="lg:text-3xl font-bold lg:py-2  text-start max-lg:line-clamp-1  hover:underline">
-                {title}
+                {name}
               </button>
             </Link>
           </div>
-          <p className="lg:text-2xl lg:py-2 font-bold  ">USD {price}</p>
+          <p className="lg:text-2xl lg:py-2 font-bold  ">ETB {price}</p>
           <span className="bg-green-300 text-xs lg:text-sm rounded-full px-2 py-1 font-semibold ">
             FREE shipping
           </span>

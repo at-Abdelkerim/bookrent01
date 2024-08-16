@@ -1,12 +1,11 @@
 import React from "react";
-import { getBook } from "../lib/actions";
+import { getCustomerBook } from "../lib/actions";
 import TopCard from "../components/TopCard";
 import Filter from "../components/Filter";
 import Card from "../components/Card";
-import { TBook } from "../lib/definitions";
 
 export default async function Page() {
-  const [firstData, ...data] = await getBook();
+  const [firstData, ...data] = await getCustomerBook();
   return (
     <div className="grid lg:px-32">
       <TopCard {...firstData} />

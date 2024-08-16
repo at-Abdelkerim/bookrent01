@@ -20,12 +20,12 @@ export default function AreaChartUI({
   data: { month: string; thisYear: number; lastYear: number }[];
 }) {
   return (
-    <div className="bg-gray-50 rounded-lg p-5">
+    <div className="bg-gray-50 rounded-lg p-5 overflow-y-hidden overflow-x-auto">
       <div className="grid grid-cols-[1fr_auto] p-4">
         <div className="flex gap-x-5">
           <p className="text-2xl font-extrabold">Earning Summary</p>
           <Select
-            variant="outlined"
+            variant="filled"
             labelId="date-interval"
             id="date-interval"
             defaultValue={2024}
@@ -53,7 +53,7 @@ export default function AreaChartUI({
         height={"100%"}
         className="grid justify-center"
       >
-        <ComposedChart width={900} height={200} data={data}>
+        <ComposedChart width={800} height={200} data={data}>
           <defs>
             <linearGradient id="colorThisYear" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
@@ -78,7 +78,7 @@ export default function AreaChartUI({
             axisLine={false}
             tickLine={false}
             tickMargin={20}
-            tickFormatter={(val) => val + "k ETB"}
+            tickFormatter={(val) => val + " ETB"}
           />
           <Area
             type="monotone"

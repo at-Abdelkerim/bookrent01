@@ -1,29 +1,17 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { auth, CustomError, signIn } from "./auth";
+import { auth, CustomError, signIn, signOut } from "./auth";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import prisma from "./db";
-import { error } from "console";
+import fs from "fs";
+import { revalidatePath } from "next/cache";
 
 export async function authenticate(
   prevState: string | undefined,
   formData: FormData
 ) {
-  // await prisma.user.createMany({
-  //   data: [
-  //     {
-  //       email: "owner@gmail.com",
-  //       name: "owner",
-  //       location: "ethiopia",
-  //       phoneNumber: "0945467896",
-  //       role: "owner",
-  //       password:
-  //         "$2a$12$fuab47aK59ksYOWpTlq3U.uW57QGd17vtoWh3bfvA.CL5kiVsP/Zi",
-  //     },
-  //   ],
-  // });
   let error = null;
   await signIn("old", {
     email: formData.get("email"),
@@ -38,6 +26,15 @@ export async function authenticate(
   });
   if (error) return error;
   redirect("/");
+}
+
+export async function unauthentic(
+  prevState: string | undefined,
+  formData: FormData
+) {
+  await signOut();
+  redirect("/");
+  return "";
 }
 
 export async function register(
@@ -65,62 +62,25 @@ export async function register(
 }
 
 export async function getCustomerBook(id?: string) {
-  if (id) {
-    return [
-      {
-        id: id,
-        img: ["book01.png", "book02.jpeg"],
-        title: "Deep Work",
-        price: 72.5,
-        owner: { name: "abdelkerim", rate: 45 },
-      },
-    ];
-    redirect("/");
-  } else {
-    return [
-      {
-        id: "test01",
-        img: ["book01.png"],
-        title: "Deep Work",
-        price: 72.5,
-        owner: { name: "abdelkerim", rate: 45 },
-      },
-      {
-        id: "test02",
-        img: ["book01.png"],
-        title: "Deep Work",
-        price: 72.5,
-        owner: { name: "abdelkerim", rate: 45 },
-      },
-      {
-        id: "test03",
-        img: ["book01.png"],
-        title: "Deep Work",
-        price: 72.5,
-        owner: { name: "abdelkerim", rate: 45 },
-      },
-      {
-        id: "test04",
-        img: ["book01.png"],
-        title: "Deep Work",
-        price: 72.5,
-        owner: { name: "abdelkerim", rate: 45 },
-      },
-      {
-        id: "test05",
-        img: ["book01.png"],
-        title: "Deep Work",
-        price: 72.5,
-        owner: { name: "abdelkerim", rate: 45 },
-      },
-      {
-        id: "test06",
-        img: ["book01.png"],
-        title: "Deep Work",
-        price: 72.5,
-        owner: { name: "abdelkerim", rate: 45 },
-      },
-    ];
+  try {
+    return await prisma.book
+      .findMany({
+        where: { id: id || undefined },
+        select: {
+          id: true,
+          img: true,
+          name: true,
+          price: true,
+          author: true,
+          owner: { select: { id: true, name: true, rate: true } },
+        },
+      })
+      .then((books) =>
+        books.map(({ img, ...rest }) => ({ ...rest, img: img || [] }))
+      );
+  } catch (error) {
+    console.log("ERROR :: ", error);
+    return [];
   }
 }
 
@@ -141,37 +101,119 @@ export async function giveLike(
   }
 }
 
-export async function getOwnerDashboardData() {
-  return {
-    pieChart: [
-      { name: "A1", value: 100 },
-      { name: "A2", value: 300 },
-      { name: "B1", value: 100 },
-      { name: "B2", value: 80 },
-      { name: "B3", value: 40 },
-    ],
-    table: [
-      { no: 1, bookNo: 1223, name: "DertoGada", status: true, price: 40 },
-      { no: 2, bookNo: 1221, name: "Ramatohara", status: false, price: 50 },
-      { no: 3, bookNo: 1224, name: "Ramatohara", status: false, price: 50 },
-      { no: 4, bookNo: 4554, name: "Ramatohara", status: false, price: 50 },
-      { no: 5, bookNo: 4556, name: "Ramatohara", status: false, price: 50 },
-    ],
-    areaChart: [
-      { month: "Jan", thisYear: 5, lastYear: 30 },
-      { month: "Feb", thisYear: 20, lastYear: 3 },
-      { month: "Mar", thisYear: 10, lastYear: 20 },
-      { month: "Apr", thisYear: 20, lastYear: 26 },
-      { month: "May", thisYear: 5, lastYear: 5 },
-      { month: "Jun", thisYear: 20, lastYear: 20 },
-      { month: "Jul", thisYear: 0, lastYear: 30 },
-      { month: "Sep", thisYear: 0, lastYear: 3 },
-      { month: "Sep", thisYear: 0, lastYear: 20 },
-      { month: "Oct", thisYear: 0, lastYear: 26 },
-      { month: "Nov", thisYear: 0, lastYear: 5 },
-      { month: "Dec", thisYear: 0, lastYear: 20 },
-    ],
-  };
+export async function getDashboardData() {
+  const session = await auth();
+  try {
+    const newDate = new Date();
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const income: { month: string; thisYear: number; lastYear: number }[] = [];
+    for (let index = 0; index < months.length; index++) {
+      const thisYear = await prisma.rent.findMany({
+        where: {
+          book: {
+            ownerId:
+              session?.user?.role === "owner" ? session?.user?.id : undefined,
+          },
+          date: {
+            gte: new Date(
+              `${index + 1}/1/${newDate.getFullYear()}`
+            ).toISOString(),
+            lte: new Date(
+              `${index + 1}/31/${newDate.getFullYear()}`
+            ).toISOString(),
+          },
+        },
+        select: {
+          id: true,
+          book: { select: { quantity: true, price: true } },
+        },
+      });
+      const lastYear = await prisma.rent.findMany({
+        where: {
+          book: {
+            ownerId:
+              session?.user?.role === "owner" ? session?.user?.id : undefined,
+          },
+          date: {
+            gte: new Date(
+              `${index + 1}/1/${newDate.getFullYear() + 1}`
+            ).toISOString(),
+            lte: new Date(
+              `${index + 1}/31/${newDate.getFullYear() + 1}`
+            ).toISOString(),
+          },
+        },
+        select: {
+          id: true,
+          book: { select: { quantity: true, price: true } },
+        },
+      });
+      income.push({
+        month: months[index],
+        thisYear: thisYear.reduce((result, { book: { quantity, price } }) => {
+          return result + quantity * price;
+        }, 0),
+        lastYear: lastYear.reduce((result, { book: { quantity, price } }) => {
+          return result + quantity * price;
+        }, 0),
+      });
+    }
+
+    const categoryData = await prisma.book
+      .groupBy({
+        by: "category",
+        where:
+          session?.user?.role === "owner"
+            ? {
+                ownerId: session?.user?.id,
+              }
+            : undefined,
+        _sum: {
+          quantity: true,
+        },
+      })
+      .then((res) =>
+        res.map(({ category, _sum: { quantity } }) => ({
+          category,
+          quantity: quantity || 0,
+        }))
+      );
+
+    const books = await prisma.book.findMany({
+      where:
+        session?.user?.role === "owner"
+          ? { ownerId: session?.user?.id }
+          : undefined,
+      select: {
+        id: true,
+        no: true,
+        name: true,
+        price: true,
+        status: true,
+        owner:
+          session?.user?.role === "owner"
+            ? { select: { name: true } }
+            : undefined,
+      },
+    });
+
+    return { income, categoryData, books };
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 export async function getOwnerBookName() {
@@ -180,7 +222,6 @@ export async function getOwnerBookName() {
       distinct: ["name"],
       select: { id: true, name: true },
     });
-    console.log("BOOKS : ", books);
     return books || [];
   } catch (err) {
     return [];
@@ -191,8 +232,38 @@ export async function uploadBook(
   prevState: boolean | undefined,
   formData: FormData
 ) {
+  const session = await auth();
+  const dir = `./public/image/book/${session?.user?.id}/`;
+  const file = formData.get("bookCover") as File;
+  const ext = file.name.substring(file.name.lastIndexOf(".") + 1);
+  let fileName =
+    new Date().toLocaleString().replace(/[\/\s:,]/g, "") + "." + ext;
+  if (fs.existsSync(dir)) {
+    let temp = true;
+    while (temp) {
+      try {
+        fs.statSync(dir + fileName);
+        fileName =
+          new Date().toLocaleString().replace(/[\/\s:,]/g, "") + "." + ext;
+      } catch (err) {
+        temp = false;
+      }
+    }
+  } else {
+    try {
+      fs.mkdirSync(dir);
+    } catch (err) {
+      return false;
+    }
+  }
+
   try {
-    const session = await auth();
+    fs.writeFileSync(dir + fileName, new Uint8Array(await file.arrayBuffer()));
+  } catch (err) {
+    return false;
+  }
+
+  try {
     const parsedData = z
       .object({
         book: z.string().min(1),
@@ -206,38 +277,148 @@ export async function uploadBook(
       });
     if (parsedData.success) {
       let { book, price, quantity } = parsedData.data;
-      if (session?.user?.id) {
-        const extractData = book.split(" ");
-        let name, author, category;
-        if (extractData.length == 1) {
-          const oldData = await prisma.book.findUnique({
-            where: { id: book },
-            select: { name: true, author: true, category: true },
-          });
-          name = oldData?.name;
-          author = oldData?.author;
-          category = oldData?.category;
-        } else {
-          [name, author, category] = extractData;
-        }
-        if (name && author && category) {
-          const newBook = await prisma.book.create({
-            data: {
-              name,
-              author,
-              category,
-              img: "",
-              price,
-              quantity,
-              ownerId: session.user.id,
-            },
-          });
-          if (newBook) return true;
-        }
+      let name, author, category;
+      const extractData = book.split(" ");
+      if (extractData.length == 1) {
+        const oldData = await prisma.book.findUnique({
+          where: { id: book },
+          select: { name: true, author: true, category: true },
+        });
+        name = oldData?.name;
+        author = oldData?.author;
+        category = oldData?.category;
+      } else {
+        [name, author, category] = extractData;
+      }
+      if (name && author && category) {
+        const newBook = await prisma.book.create({
+          data: {
+            name,
+            author,
+            category,
+            img: fileName,
+            price,
+            quantity,
+            ownerId: session?.user?.id!,
+          },
+        });
+        if (newBook) return true;
       }
     }
-    throw Error();
   } catch (err) {
     return false;
   }
+}
+
+export async function getBookList() {
+  // prevState: boolean | undefined,
+  // formData: FormData
+  try {
+    return await prisma.book.findMany({
+      select: {
+        id: true,
+        no: true,
+        name: true,
+        category: true,
+        author: true,
+        status: true,
+        owner: { select: { name: true } },
+      },
+    });
+  } catch (err) {
+    return [];
+  }
+}
+
+export async function getOwnerList() {
+  try {
+    return await prisma.user
+      .findMany({
+        where: { role: "owner" },
+        select: {
+          id: true,
+          email: true,
+          phoneNumber: true,
+          name: true,
+          location: true,
+          status: true,
+          approved: true,
+          book: { select: { quantity: true } },
+        },
+      })
+      .then((res) =>
+        res.map(({ book, ...res }) => ({
+          ...res,
+          bookNumber: book.reduce(
+            (result, { quantity }) => result + quantity,
+            0
+          ),
+        }))
+      );
+  } catch (err) {
+    return [];
+  }
+}
+
+export async function toggleStatus(
+  prevState: boolean | undefined,
+  formData: FormData
+) {
+  try {
+    const parsedData = z
+      .object({
+        id: z.string().min(1),
+        dataType: z.string().min(1),
+        status: z.coerce.boolean(),
+      })
+      .safeParse({
+        id: formData.get("id"),
+        dataType: formData.get("dataType"),
+        status: formData.get("status"),
+      });
+    if (parsedData.success) {
+      const { id, dataType, status } = parsedData.data;
+      if (dataType === "book") {
+        const updated = await prisma.book.update({
+          where: { id },
+          data: { status },
+          select: { status: true },
+        });
+        revalidatePath("/admin/dashboard/books");
+        return updated.status;
+      } else {
+        const updated = await prisma.user.update({
+          where: { id, role: "owner" },
+          data: { status },
+          select: { status: true },
+        });
+        revalidatePath("/admin/dashboard/owners");
+        return updated.status;
+      }
+    }
+  } catch (err) {}
+}
+
+export async function toggleApprove(
+  prevState: boolean | undefined,
+  formData: FormData
+) {
+  try {
+    const parsedData = z
+      .object({ id: z.string(), approved: z.coerce.boolean() })
+      .safeParse({
+        id: formData.get("id"),
+        approved: formData.get("approved"),
+      });
+    if (parsedData.success) {
+      const { id, approved } = parsedData.data;
+      const updatedData = await prisma.user.update({
+        where: { id, role: "owner" },
+        data: { approved },
+        select: { approved: true },
+      });
+      revalidatePath("/admin/dashboard/owners");
+      return updatedData.approved;
+    }
+  } catch (err) {}
 }

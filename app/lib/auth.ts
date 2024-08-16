@@ -3,7 +3,7 @@ import NextAuth, {
   NextAuthConfig,
   type DefaultSession,
 } from "next-auth";
-import { JWT } from "next-auth/jwt";
+import { DefaultJWT, JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 import bcryptjs from "bcryptjs";
@@ -17,7 +17,7 @@ declare module "next-auth" {
 }
 
 declare module "next-auth/jwt" {
-  interface JWT {
+  interface JWT extends DefaultJWT {
     id?: string;
     role?: string;
   }
@@ -32,17 +32,27 @@ export class CustomError extends CredentialsSignin {
 const authConfig = {
   pages: {
     signIn: "/login",
+    signOut: "/logout",
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
-      if (!!auth?.user)
-        if (auth?.user.role === "customer")
-          if (isOnDashboard) return Response.redirect(new URL("/", nextUrl));
-          else return true;
-        else if (isOnDashboard) return true;
-        else return Response.redirect(new URL("/dashboard", nextUrl));
-      else if (isOnDashboard) return false;
+      if (!!auth?.user) {
+        if (auth?.user.role === "admin") {
+          if (nextUrl.pathname.startsWith("/admin")) return true;
+          else return Response.redirect(new URL("/admin/dashboard", nextUrl));
+        } else if (auth?.user.role === "owner") {
+          if (nextUrl.pathname.startsWith("/owner")) return true;
+          else return Response.redirect(new URL("/owner/dashboard", nextUrl));
+        } else {
+          if (nextUrl.pathname.startsWith("/customer")) return true;
+          else
+            return Response.redirect(new URL("/customer/dashboard", nextUrl));
+        }
+      } else if (
+        nextUrl.pathname.startsWith("/admin") ||
+        nextUrl.pathname.startsWith("/owner")
+      )
+        return false;
       else return true;
     },
     async jwt({ token, user }) {
