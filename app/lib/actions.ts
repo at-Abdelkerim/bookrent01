@@ -296,7 +296,7 @@ export async function uploadBook(
             name,
             author,
             category,
-            img: fileName,
+            img: [fileName],
             price,
             quantity,
             ownerId: session?.user?.id!,
